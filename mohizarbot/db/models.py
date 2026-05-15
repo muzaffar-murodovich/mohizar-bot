@@ -20,3 +20,11 @@ class AuditLog(Base):
     reasoning_summary: Mapped[str] = mapped_column(String(1024), nullable=False)
     previous_hmac: Mapped[str] = mapped_column(String(128), nullable=False)
     hmac: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class ChatSettings(Base):
+    __tablename__ = "chat_settings"
+
+    chat_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, default="anthropic")
+    model: Mapped[str] = mapped_column(String(64), nullable=False, default="claude-sonnet-4-6")

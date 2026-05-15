@@ -3,16 +3,20 @@ from __future__ import annotations
 from alembic import context
 from sqlalchemy import pool
 
-from mohizarbot.config import Settings
 from mohizarbot.db.models import Base
 
 target_metadata = Base.metadata
-settings = Settings()
+
+
+def _get_url() -> str:
+    from mohizarbot.config import Settings
+
+    return Settings().database_url  # type: ignore[call-arg]
 
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=settings.database_url,
+        url=_get_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -25,7 +29,7 @@ async def run_migrations_online() -> None:
     from sqlalchemy.ext.asyncio import create_async_engine
 
     connectable = create_async_engine(
-        settings.database_url,
+        _get_url(),
         poolclass=pool.NullPool,
     )
 
