@@ -60,6 +60,18 @@ Full pipeline integration: sanitize → wrap → LLM → intents → policy → 
 - **Callback handler**: confirmation button parsing → resolve_confirmation → execute if approved
 - **Tests**: 7 new test files (39 new tests); total **837 tests** (> Sprint 3's 798)
 
+## Sprint 5 — what's included
+
+Expanded Bot API 9.6 tools, memory store, and web tools:
+
+- **New intents** (31 total): SendPhoto/Document/Video/Audio/Voice/Sticker/Location, SendPoll/StopPoll, SetMessageReaction, Ban/Unban/Restrict/Promote ChatMember, SetChatPermissions, Pin/Unpin ChatMessage, SetChatTitle/Description, Create/Edit/Close/Delete ForumTopic, MemorySave/Delete, WebFetch/Search
+- **Risk classification** (`policy/risk.py`): RISK_LEVELS maps each intent to low/medium/high; high-risk (ban/kick/restrict/promote/pin/delete/set-permissions) ALWAYS requires confirmation
+- **Tool modules**: media, polls, reactions, moderation, chat_admin, forum, web, memory — each with Tool ABC and OpenAI JSON schemas
+- **Memory store**: scoped CRUD with FTS index; instruction-like content flagged for owner approval; cross-user isolation
+- **Web tools**: WebFetch with domain allowlist, DNS rebinding defense (private/loopback IP refusal), 5MB cap, 10s timeout; WebSearch stub
+- **Precheck system**: high-risk tools declare `required_bot_rights` verified before execution
+- **Tests**: 10 new test files (74 new tests); total **911 tests** (> Sprint 4's 837)
+
 ## Quick start
 
 ```bash
