@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-SPOTLIGHT_CHAR = "‹"  # ‹ — single left-pointing angle quotation mark
+SPOTLIGHT_CHAR = "‹"  # ‹ — U+2039 single left-pointing angle quotation mark
 
 
 def spotlight(text: str) -> str:
@@ -16,3 +16,8 @@ def spotlight(text: str) -> str:
 def unspotlight(text: str) -> str:
     """Reverse the spotlight transformation: restore spaces from ‹ markers."""
     return text.replace(SPOTLIGHT_CHAR, " ")
+
+
+# Public API aliases as specified in Sprint 3
+apply = spotlight
+reverse = unspotlight
