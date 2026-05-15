@@ -33,6 +33,19 @@ Multi-provider LLM abstraction with pure httpx clients:
 - **ChatSettings model**: per-chat provider/model configuration with alembic migration
 - **Tests**: 9 new test files using respx mocking — no real API keys or network
 
+## Sprint 3 — what's included
+
+Security core and injection defense:
+
+- **untrusted.py (Layer 1 extended)**: `wrap_untrusted(kind, body, session_token, **attrs)` supporting five untrusted kinds with per-kind closing-tag escaping
+- **Spotlighting API (Layer 2)**: `apply()`/`reverse()` aliases for space-to-‹ transformation
+- **input_sanitizer.py**: strips zero-width chars, bidi overrides, Trojan-Source patterns; NFC normalizes; truncates; deduplicates runs of >50 identical chars
+- **output_filter.py (Layer 5)**: secret leak scan, system-prompt echo detection (≥6-word verbatim), non-allowlisted link stripping, sentence-boundary truncation
+- **injection_detector.py**: 10-compiled-regex detector flagging ignore-previous, role-confusion, base64 blocks, suspicious tool names, delimiter imitation, system prompt extraction, multi-turn priming, and encoding smuggling
+- **Red-team corpus**: 219 injection payloads across 8 categories (delimiter_imitation, role_confusion, system_prompt_extraction, memory_poisoning, output_exfiltration, unicode_laundering, encoding_smuggling, multi_turn_priming)
+- **Parametrized red-team tests**: 657 test cases asserting: sanitize+wrap cannot be escaped; detector flags expected signals; output_filter matches expected blocking
+- **Tests**: 319 new test cases (5 new test files + corpus)
+
 ## Quick start
 
 ```bash
