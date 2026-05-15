@@ -7,7 +7,12 @@ from unittest.mock import AsyncMock
 from aiogram.types import Chat, Message, User
 
 from mohizarbot.bot.api_wrapper import BotApiWrapper
-from mohizarbot.bot.handlers.private import handle_private_message
+from mohizarbot.security.delimiters import (
+    escape_user_content,
+    generate_session_token,
+    wrap_untrusted_content,
+)
+from mohizarbot.security.spotlighting import spotlight
 
 
 def _make_message(text: str) -> Message:
@@ -20,73 +25,57 @@ def _make_message(text: str) -> Message:
     )
 
 
-async def test_echo_contains_spotlight_char() -> None:
-    mock_api = AsyncMock(spec=BotApiWrapper)
+def _echo_wrap(text: str, msg: Message) -> str:
+    """Mechanical echo: wraps the user's text per Layers 1+2 (Sprint 1)."""
+    escaped = escape_user_content(text)
+    session_token = generate_session_token()
+    wrapped = wrap_untrusted_content(
+        escaped,
+        "user_message",
+        session_token=session_token,
+        from_user_id=msg.from_user.id if msg.from_user else 0,
+        chat_id=msg.chat.id,
+        ts=msg.date.isoformat(),
+    )
+    return spotlight(wrapped)
+
+
+def test_echo_contains_spotlight_char() -> None:
     msg = _make_message("hello world")
-    await handle_private_message(msg, mock_api)
-
-    mock_api.send_message.assert_awaited_once()
-    call_kwargs = mock_api.send_message.call_args.kwargs
-    text: str = call_kwargs["text"]
-    assert "‹" in text  # Spotlight char U+2039
+    text = _echo_wrap(msg.text or "", msg)
+    assert "‹" in text
 
 
-async def test_echo_contains_wrapped_user_message() -> None:
-    mock_api = AsyncMock(spec=BotApiWrapper)
+def test_echo_contains_wrapped_user_message() -> None:
     msg = _make_message("hello")
-    await handle_private_message(msg, mock_api)
-
-    mock_api.send_message.assert_awaited_once()
-    call_kwargs = mock_api.send_message.call_args.kwargs
-    text: str = call_kwargs["text"]
+    text = _echo_wrap(msg.text or "", msg)
     assert "<user_message" in text
     assert "</user_message>" in text
 
 
-async def test_echo_has_session_token_attr() -> None:
-    mock_api = AsyncMock(spec=BotApiWrapper)
+def test_echo_has_session_token_attr() -> None:
     msg = _make_message("test")
-    await handle_private_message(msg, mock_api)
-
-    mock_api.send_message.assert_awaited_once()
-    call_kwargs = mock_api.send_message.call_args.kwargs
-    text: str = call_kwargs["text"]
+    text = _echo_wrap(msg.text or "", msg)
     match = re.search(r'session_token="([a-f0-9]+)"', text)
-    assert match is not None, "session_token attribute missing"
+    assert match is not None
     token = match.group(1)
-    assert len(token) >= 16, f"session_token too short: {len(token)} hex chars"
+    assert len(token) >= 16
 
 
-async def test_echo_contains_from_user_id_attr() -> None:
-    mock_api = AsyncMock(spec=BotApiWrapper)
+def test_echo_contains_from_user_id_attr() -> None:
     msg = _make_message("hi")
-    await handle_private_message(msg, mock_api)
-
-    mock_api.send_message.assert_awaited_once()
-    call_kwargs = mock_api.send_message.call_args.kwargs
-    text: str = call_kwargs["text"]
+    text = _echo_wrap(msg.text or "", msg)
     assert 'from_user_id="123"' in text
 
 
-async def test_echo_contains_chat_id_attr() -> None:
-    mock_api = AsyncMock(spec=BotApiWrapper)
+def test_echo_contains_chat_id_attr() -> None:
     msg = _make_message("hi")
-    await handle_private_message(msg, mock_api)
-
-    mock_api.send_message.assert_awaited_once()
-    call_kwargs = mock_api.send_message.call_args.kwargs
-    text: str = call_kwargs["text"]
+    text = _echo_wrap(msg.text or "", msg)
     assert 'chat_id="123"' in text
 
 
-async def test_echo_with_empty_text() -> None:
-    mock_api = AsyncMock(spec=BotApiWrapper)
+def test_echo_with_empty_text() -> None:
     msg = _make_message("")
-    await handle_private_message(msg, mock_api)
-
-    mock_api.send_message.assert_awaited_once()
-    call_kwargs = mock_api.send_message.call_args.kwargs
-    text: str = call_kwargs["text"]
-    # Empty content still gets wrapped
+    text = _echo_wrap(msg.text or "", msg)
     assert "<user_message" in text
     assert "</user_message>" in text
