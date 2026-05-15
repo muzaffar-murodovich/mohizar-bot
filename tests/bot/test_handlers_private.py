@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from unittest.mock import AsyncMock
 
 from aiogram.types import Chat, Message, User
 
-from mohizarbot.bot.api_wrapper import BotApiWrapper
 from mohizarbot.security.delimiters import (
     escape_user_content,
     generate_session_token,
