@@ -46,6 +46,20 @@ Security core and injection defense:
 - **Parametrized red-team tests**: 657 test cases asserting: sanitize+wrap cannot be escaped; detector flags expected signals; output_filter matches expected blocking
 - **Tests**: 319 new test cases (5 new test files + corpus)
 
+## Sprint 4 — what's included
+
+Full pipeline integration: sanitize → wrap → LLM → intents → policy → output → send:
+
+- **Policy intents**: Pydantic v2 discriminated union (SendMessage, EditMessage, DeleteMessage, ForwardMessage) via `IntentBatch`
+- **Policy engine**: validates schema → permissions → rate limits → executes (send/edit/text) or queues (delete) for confirmation
+- **Permissions**: Redis-cached getChatMember with 60s TTL; private chats bypass admin checks; admin can delete others' messages
+- **Rate limits**: in-memory token-bucket per (chat, user, action); send=20/min, edit=10/min, delete=5/min, global chat=60/min
+- **Confirmations**: HMAC-signed tokens with 8-min TTL; Approve/Deny inline keyboard; token reuse and expiry rejected
+- **Tools**: Tool ABC with OpenAI-style JSON schemas; default-deny ToolRegistry; emit_intents as the sole LLM-exposed function
+- **Pipeline handler**: sanitize → wrap_untrusted → system.md.tmpl → router → LLM.chat with emit_intents → parse IntentBatch → policy_engine.execute → output_filter → reply
+- **Callback handler**: confirmation button parsing → resolve_confirmation → execute if approved
+- **Tests**: 7 new test files (39 new tests); total **837 tests** (> Sprint 3's 798)
+
 ## Quick start
 
 ```bash
