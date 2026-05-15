@@ -18,6 +18,21 @@ Project skeleton and security foundations:
 - **Alembic**: migration framework configured for async PostgreSQL
 - **Tests**: config loading, webhook auth, echo handler, audit chain, delimiter escaping, spotlighting
 
+## Sprint 2 — what's included
+
+Multi-provider LLM abstraction with pure httpx clients:
+
+- **LLMProvider Protocol**: async `chat()` and `stream()` methods, runtime-checkable
+- **Types**: `ChatMessage`, `ToolSpec`, `ToolCall`, `LLMResponse`, `StreamChunk`
+- **Anthropic provider**: native Messages API with tool_use parsing, SSE streaming
+- **OpenAI provider**: chat/completions API, tool_calls parsing, SSE streaming with [DONE]
+- **DeepSeek provider**: OpenAI-compatible API, defaults to `deepseek-chat`
+- **Router**: cost-aware (short prompts → cheap provider) and capability-aware (vision/long-context) strategies
+- **Failover**: catches 5xx and timeouts, tries next in chain, raises `LLMUnavailableError` if all fail
+- **Streaming bridge**: `stream_to_telegram()` with debounced edits (≤1 per 1.2s)
+- **ChatSettings model**: per-chat provider/model configuration with alembic migration
+- **Tests**: 9 new test files using respx mocking — no real API keys or network
+
 ## Quick start
 
 ```bash
