@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Guard Decisions</h1>
+<form method="get" class="search-form">
+    <select name="verdict">
+        <option value="suspicious,block" {% if verdict == 'suspicious,block' %}selected{% endif %}>Suspicious + Block</option>
+        <option value="block" {% if verdict == 'block' %}selected{% endif %}>Block Only</option>
+        <option value="safe" {% if verdict == 'safe' %}selected{% endif %}>Safe Only</option>
+        <option value="safe,suspicious,block" {% if verdict == 'safe,suspicious,block' %}selected{% endif %}>All</option>
+    </select>
+    <button type="submit">Filter</button>
+</form>
+<table>
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Chat (hashed)</th>
+            <th>Verdict</th>
+            <th>Reason</th>
+            <th>Intent Type</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+            <td>{{ row.timestamp }}</td>
+            <td>{{ row.chat_id }}</td>
+            <td class="verdict-{{ row.verdict }}">{{ row.verdict }}</td>
+            <td>{{ row.reason[:80] }}</td>
+            <td>{{ row.intent_type }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="pagination">
+    {% if page > 1 %}<a href="?verdict={{ verdict }}&page={{ page - 1 }}">← Prev</a>{% endif %}
+    <span>Page {{ page }}</span>
+    <a href="?verdict={{ verdict }}&page={{ page + 1 }}">Next →</a>
+</div>
+{% endblock %}

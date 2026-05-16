@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_chats }}</div>
+        <div class="stat-label">Total Chats</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.intents_24h }}</div>
+        <div class="stat-label">Intents (24h)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.intents_7d }}</div>
+        <div class="stat-label">Intents (7d)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.guard_suspicious_24h + stats.guard_block_24h }}</div>
+        <div class="stat-label">Guard Alerts (24h)</div>
+    </div>
+</div>
+<h2>Guard Verdicts (24h)</h2>
+<table>
+    <tr><th>Verdict</th><th>Count</th></tr>
+    <tr><td>Safe</td><td>{{ stats.guard_safe_24h }}</td></tr>
+    <tr><td>Suspicious</td><td>{{ stats.guard_suspicious_24h }}</td></tr>
+    <tr><td>Block</td><td>{{ stats.guard_block_24h }}</td></tr>
+</table>
+<h2>Rate Limited (last hour): {{ stats.rate_limited_1h }}</h2>
+{% endblock %}

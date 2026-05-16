@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Audit Log</h1>
+<form method="get" class="search-form">
+    <input type="number" name="chat_id" placeholder="Chat ID" value="{{ request.query_params.get('chat_id', '') }}">
+    <button type="submit">Filter</button>
+</form>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Timestamp</th>
+            <th>Chat</th>
+            <th>User</th>
+            <th>Decision</th>
+            <th>Reason</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+            <td>{{ row.id }}</td>
+            <td>{{ row.timestamp }}</td>
+            <td>{{ row.chat_id }}</td>
+            <td>{{ row.user_id }}</td>
+            <td>{{ row.decision }}</td>
+            <td>{{ row.reasoning_summary[:100] }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<form method="post" style="margin-top:1em">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" name="action" value="verify_chain">Verify Chain</button>
+</form>
+{% endblock %}

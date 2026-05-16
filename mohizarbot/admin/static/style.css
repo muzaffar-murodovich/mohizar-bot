@@ -1,0 +1,31 @@
+:root { --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a; --text: #e1e4ed; --muted: #8b8fa3; --accent: #6366f1; --red: #ef4444; --amber: #f59e0b; --green: #22c55e; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); }
+.nav a { color: var(--muted); text-decoration: none; margin: 0 0.5rem; font-size: 0.9rem; }
+.nav a:hover { color: var(--text); }
+.nav .logo { color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+h1 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+h2 { margin: 2rem 0 1rem; font-size: 1.1rem; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 8px; overflow: hidden; }
+th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+th { background: var(--surface); color: var(--muted); font-weight: 600; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); }
+.stat-value { font-size: 2rem; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+.login-container { max-width: 400px; margin: 5rem auto; text-align: center; }
+.login-container h1 { margin-bottom: 1rem; }
+.login-container p { color: var(--muted); margin-bottom: 2rem; }
+.settings-form label { display: block; margin: 1rem 0; }
+.settings-form input, .settings-form select { width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
+button, .btn { background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+button:hover { opacity: 0.9; }
+.search-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.search-form input { flex: 1; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
+.pagination { display: flex; gap: 1rem; align-items: center; margin-top: 1rem; }
+.pagination a { color: var(--accent); text-decoration: none; }
+.verdict-block { color: var(--red); font-weight: 700; }
+.verdict-suspicious { color: var(--amber); font-weight: 700; }
+.verdict-safe { color: var(--green); }

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Chat #{{ chat_id }}</h1>
+<form method="post" class="settings-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Provider:
+        <select name="provider">
+            <option value="anthropic" {% if settings.provider == 'anthropic' %}selected{% endif %}>Anthropic</option>
+            <option value="openai" {% if settings.provider == 'openai' %}selected{% endif %}>OpenAI</option>
+            <option value="deepseek" {% if settings.provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
+        </select>
+    </label>
+    <label>Model:
+        <input type="text" name="model" value="{{ settings.model }}">
+    </label>
+    <label>Auto Approve:
+        <input type="checkbox" name="auto_approve" {% if settings.auto_approve %}checked{% endif %}>
+    </label>
+    <button type="submit">Save Changes</button>
+</form>
+{% endblock %}
