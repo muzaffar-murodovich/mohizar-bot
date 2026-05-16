@@ -57,7 +57,9 @@ async def index(request: Request) -> RedirectResponse:
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "login.html",
+    return templates.TemplateResponse(
+        request,
+        "login.html",
         {
             "request": request,
             "bot_username": "mohizarbot",
@@ -119,7 +121,9 @@ async def dashboard(
         return RedirectResponse(url="/login", status_code=302)
 
     stats = DashboardStats(total_chats=42, intents_24h=1337, intents_7d=8942)
-    return templates.TemplateResponse(request, "dashboard.html",
+    return templates.TemplateResponse(
+        request,
+        "dashboard.html",
         {
             "request": request,
             "stats": stats,
@@ -143,7 +147,9 @@ async def chats_list(
     from mohizarbot.admin.schemas import ChatRow
 
     rows = [ChatRow(chat_id=123, provider="anthropic", model="claude-sonnet-4-6")]
-    return templates.TemplateResponse(request, "chats.html",
+    return templates.TemplateResponse(
+        request,
+        "chats.html",
         {
             "request": request,
             "rows": rows,
@@ -164,7 +170,9 @@ async def chat_detail(
     except Exception:
         return RedirectResponse(url="/login", status_code=302)
 
-    return templates.TemplateResponse(request, "chat_detail.html",
+    return templates.TemplateResponse(
+        request,
+        "chat_detail.html",
         {
             "request": request,
             "chat_id": chat_id,
@@ -212,7 +220,9 @@ async def audit_list(
         return RedirectResponse(url="/login", status_code=302)
 
     rows: list = []
-    return templates.TemplateResponse(request, "audit.html",
+    return templates.TemplateResponse(
+        request,
+        "audit.html",
         {
             "request": request,
             "rows": rows,
@@ -235,7 +245,9 @@ async def guard_list(
         return RedirectResponse(url="/login", status_code=302)
 
     rows: list = []
-    return templates.TemplateResponse(request, "guard.html",
+    return templates.TemplateResponse(
+        request,
+        "guard.html",
         {
             "request": request,
             "rows": rows,
