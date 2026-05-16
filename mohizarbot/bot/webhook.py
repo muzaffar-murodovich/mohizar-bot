@@ -63,7 +63,16 @@ async def webhook(
 
     if update.callback_query is not None:
         await handle_callback(update.callback_query, api, hmac_key)
-    elif update.message is not None and update.message.chat.type == "private":
-        await handle_private_message(update.message, api, router, hmac_key, secrets_list)  # type: ignore[arg-type]
+    elif update.message is not None:
+        chat_type = update.message.chat.type
+        if chat_type == "private":
+            await handle_private_message(update.message, api, router, hmac_key, secrets_list)  # type: ignore[arg-type]
+        elif chat_type in ("group", "supergroup"):
+            from mohizarbot.bot.handlers.group import handle_group_message
+
+            await handle_group_message(update.message, api, router, hmac_key, secrets_list)
+        else:
+            # channel → no-op (Sprint 9+)
+            pass
 
     return Response(status_code=200)

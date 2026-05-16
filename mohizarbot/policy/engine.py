@@ -69,7 +69,9 @@ class PolicyEngine:
                 continue
 
             # High-risk actions: queue for confirmation
-            if action_class in ("delete_message",):
+            from mohizarbot.policy.risk import is_high_risk
+
+            if is_high_risk(action_class):
                 intent_json = intent.model_dump_json()
                 token = queue_confirmation(
                     intent_json,

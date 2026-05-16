@@ -68,5 +68,39 @@ def wrap_untrusted(
     return f"<{kind}{attr_str}>{body}</{kind}>"
 
 
+def wrap_group_message(
+    body: str,
+    *,
+    from_user_id: str = "",
+    username: str = "",
+    is_admin: str = "false",
+    is_reply_to_bot: str = "false",
+    reply_to_user_id: str = "",
+    forwarded_from_id: str = "",
+    forwarded_from_chat_id: str = "",
+    ts: str = "",
+    **extra_attrs: str,
+) -> str:
+    """Wrap a group chat message with full attribution attributes.
+
+    All attributes always present (empty string if unknown).
+    Escape rules from Sprint 3 apply.
+    """
+    attrs: dict[str, str | int] = {
+        "from_user_id": from_user_id,
+        "username": username,
+        "is_admin": is_admin,
+        "is_reply_to_bot": is_reply_to_bot,
+        "reply_to_user_id": reply_to_user_id,
+        "forwarded_from_id": forwarded_from_id,
+        "forwarded_from_chat_id": forwarded_from_chat_id,
+        "ts": ts,
+    }
+    attrs.update(extra_attrs)
+    # Filter to only string-safe values for the wrapper
+    str_attrs: dict[str, str | int] = {k: str(v) for k, v in attrs.items()}
+    return wrap_untrusted("group_message", body, **str_attrs)  # type: ignore[arg-type]
+
+
 def is_kind_valid(kind: str) -> bool:
     return kind in _END_TAG_RE
