@@ -28,7 +28,9 @@ def test_re_anchor_every_5_reinjects() -> None:
     has_system = any(
         getattr(m, "content", "") == system and getattr(m, "role", "") == "system" for m in msgs
     )
-    assert has_system, f"System should be re-anchored at turn 5. Roles: {[getattr(m, 'role', '') for m in msgs]}"
+    assert has_system, (
+        f"System should be re-anchored at turn 5. Roles: {[getattr(m, 'role', '') for m in msgs]}"
+    )
 
 
 def test_assistant_outputs_wrapped() -> None:
