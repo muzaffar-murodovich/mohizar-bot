@@ -98,6 +98,29 @@ Security model closure and production readiness:
 - **Deploy guide**: `docs/deploy.md` covers env vars, postgres/redis setup, webhook+secret_token rotation, certs, log shipping, prometheus scraping, audit-chain backup, rollback
 - **Tests**: 35 new tests in 5 files + multi-turn integration; total **946 tests** (> Sprint 5's 911)
 
+## Admin panel
+
+Separate FastAPI app on port 8001 with Telegram Login Widget auth:
+
+- **Authentication**: HMAC-SHA256 verification per Telegram spec; signed httponly cookies with 8h expiry; ADMIN_USER_IDS gate
+- **Dashboard**: total chats, intents (24h/7d), guard verdict breakdown, recent confirmations, rate-limit count
+- **Chats**: paginated ChatSettings list with search; edit form for provider/model/tools/auto_approve; changes audited
+- **Audit log**: filterable by chat/user/date; paginated with expandable JSON; chain verification
+- **Guard decisions**: default 24h suspicious+block filter; verdict/chat/date filtering
+- **Security headers**: X-Frame-Options=DENY, CSP, no-referrer, nosniff; CSRF tokens on forms
+
+## Sprint 7 — what's included
+
+Admin web dashboard with Telegram Login Widget auth:
+
+- **Admin app**: separate FastAPI on ADMIN_PORT (8001) sharing Settings/DB/Redis
+- **Telegram Login Widget**: HMAC-SHA256 verification; auth_date freshness check; admin user gate
+- **Session management**: signed httponly cookies with 8h TTL
+- **Dashboard, Chats, Audit, Guard views**: Jinja2 templates with dark theme CSS
+- **Security**: X-Frame-Options=DENY, CSP, CSRF tokens, referrer/no-sniff headers
+- **Config**: ADMIN_USER_IDS env var (comma-separated)
+- **Tests**: 7 new test files (30 tests); total **976 tests** (> Sprint 6's 946)
+
 ## Quick start
 
 ```bash
