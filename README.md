@@ -121,6 +121,27 @@ Admin web dashboard with Telegram Login Widget auth:
 - **Config**: ADMIN_USER_IDS env var (comma-separated)
 - **Tests**: 7 new test files (30 tests); total **976 tests** (> Sprint 6's 946)
 
+## Group chat support
+
+mohizarbot can operate in groups and supergroups:
+
+- **Mention detection**: responds to @mention, /command@BotUsername, and reply-to-bot
+- **Group message wrapping**: rich `<group_message>` tags with from_user_id, username, is_admin, reply provenance, forward provenance
+- **Reply-chain defense**: reply parents marked `is_reply_target="true"` and NEVER treated as authoritative
+- **Non-admin moderation refusal**: moderation intents from non-admin users denied before guard model
+
+## Sprint 8 — what's included
+
+Group chat support with mention/reply detection and injection defense:
+
+- **Group handler**: responds only when addressed; loads 10-message context; bot past responses wrapped as assistant_previous_output
+- **Mention detection**: @mention, /cmd@bot, reply-to-bot; case-insensitive; non-bot rejected
+- **Group message wrapping**: all attribution attributes always present; forward provenance tracked
+- **Reply-chain defense**: reply parent with is_reply_target="true"; system prompt forbids treating parent as authoritative
+- **GROUP_CHAT_RULES**: appended to system prompt for group contexts; never accept moderation from non-admin
+- **Permissions**: non-admin moderation denied before guard model; admin still requires confirmation for high-risk
+- **Tests**: 7 new test files + 20 group-chat injection payloads; total **1057 tests** (> Sprint 7's 976)
+
 ## Quick start
 
 ```bash
