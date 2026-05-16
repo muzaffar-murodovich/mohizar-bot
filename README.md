@@ -2,6 +2,18 @@
 
 Public multi-tenant Telegram bot with multi-provider LLM routing and prompt-injection-resistant architecture.
 
+## Security model — 7 defense layers
+
+| Layer | Name | Sprint | Mechanism |
+|-------|------|--------|-----------|
+| 1 | Content/instruction separation | S1,S3 | `<untrusted_kind>` wrapping with escaped tags |
+| 2 | Spotlighting | S1,S3 | Space→‹ (U+2039) in external input |
+| 3 | Privilege separation | S4 | LLM emits intents, policy engine executes |
+| 4 | Sandboxed memory | S5 | Scoped CRUD, instruction detection |
+| 5 | Output filtering | S3 | Secret leak scan, echo detection, link stripping |
+| 6 | Multi-turn anchoring | S6 | System prompt re-injection every N turns |
+| 7 | Guard model | S6 | 2nd model verifies medium/high-risk intents |
+
 ## Sprint 1 — what's included
 
 Project skeleton and security foundations:
@@ -71,6 +83,20 @@ Expanded Bot API 9.6 tools, memory store, and web tools:
 - **Web tools**: WebFetch with domain allowlist, DNS rebinding defense (private/loopback IP refusal), 5MB cap, 10s timeout; WebSearch stub
 - **Precheck system**: high-risk tools declare `required_bot_rights` verified before execution
 - **Tests**: 10 new test files (74 new tests); total **911 tests** (> Sprint 4's 837)
+
+## Sprint 6 — what's included
+
+Security model closure and production readiness:
+
+- **Guard model (Layer 7)**: 2nd-model verifier for medium/high-risk intents; safe/suspicious/block verdicts; block is fatal, suspicious forces confirmation
+- **Multi-turn anchoring (Layer 6)**: system prompt re-injected every N=5 user turns; assistant outputs wrapped in `<assistant_previous_output>` tags
+- **Observability**: Prometheus counters (intents, LLM calls, guard decisions, confirmations) and histograms (LLM latency, pipeline latency); OpenTelemetry-style tracing spans
+- **Metrics endpoint**: `/metrics` exposed in Prometheus text format
+- **CI/CD**: GitHub Actions workflow with lint, typecheck, unit-tests, redteam, build jobs
+- **Red-team CI**: `scripts/redteam_ci.py` runs full pipeline over Sprint 3 corpus + multi-turn payloads; non-zero exit on outcome mismatch
+- **Load test**: `scripts/load_test.py` simulates N concurrent webhooks with mocked LLM/Telegram
+- **Deploy guide**: `docs/deploy.md` covers env vars, postgres/redis setup, webhook+secret_token rotation, certs, log shipping, prometheus scraping, audit-chain backup, rollback
+- **Tests**: 35 new tests in 5 files + multi-turn integration; total **946 tests** (> Sprint 5's 911)
 
 ## Quick start
 
