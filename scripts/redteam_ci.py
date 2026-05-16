@@ -49,6 +49,7 @@ def main() -> int:
     failed = 0
     passed = 0
     for filepath in sorted(glob.glob(os.path.join(corpus_dir, "*.yaml"))):
+        fname = os.path.basename(filepath)
         with open(filepath) as f:
             payloads = yaml.safe_load(f)
         for p in payloads:
@@ -60,7 +61,7 @@ def main() -> int:
                 passed += 1
             else:
                 failed += 1
-                print(f"FAIL {p['_file']}/{p['id']}: expected={expected}")
+                print(f"FAIL {fname}/{p['id']}: expected={expected}")
 
     print(f"\nRed-team CI: {passed} passed, {failed} failed")
     return 0 if failed == 0 else 1
