@@ -6,6 +6,8 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from fastapi.responses import Response
 
 from mohizarbot.admin.routes import router
@@ -28,11 +30,12 @@ def add_security_headers(response: Response) -> None:
 def create_admin_app() -> FastAPI:
     app = FastAPI(title="mohizarbot-admin", version="0.1.0")
 
-    # Security headers middleware
     @app.middleware("http")
-    async def security_headers(request: Request, call_next):
+    async def security_headers(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         response = await call_next(request)
-        add_security_headers(response)  # type: ignore[arg-type]
+        add_security_headers(response)
         return response
 
     app.include_router(router)

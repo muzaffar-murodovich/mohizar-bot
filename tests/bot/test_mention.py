@@ -83,12 +83,15 @@ def test_command_at_bot_detected() -> None:
 
 
 def test_reply_to_bot_detected() -> None:
-    reply = _make_msg("bot reply", reply=Message(
-        message_id=42,
-        from_user=User(id=999, is_bot=True, first_name="mohizarbot"),
-        date=datetime(2024, 1, 1),
-        chat=Chat(id=-100, type="group"),
-    ))
+    reply = _make_msg(
+        "bot reply",
+        reply=Message(
+            message_id=42,
+            from_user=User(id=999, is_bot=True, first_name="mohizarbot"),
+            date=datetime(2024, 1, 1),
+            chat=Chat(id=-100, type="group"),
+        ),
+    )
     assert is_bot_mentioned(reply, "mohizarbot")
 
 
@@ -102,12 +105,6 @@ def test_non_bot_not_detected() -> None:
     entities = [MessageEntity(type="mention", offset=0, length=4)]
     msg = _make_msg("@bob hello", entities=entities)
     assert not is_bot_mentioned(msg, "mohizarbot")
-
-
-def test_command_at_bot_detected() -> None:
-    entities = [MessageEntity(type="bot_command", offset=0, length=18)]
-    msg = _make_msg("/start@mohizarbot", entities=entities)
-    assert is_bot_mentioned(msg, "mohizarbot")
 
 
 def test_no_mention_no_reply_not_detected() -> None:

@@ -43,5 +43,5 @@ class DashboardStats:
     guard_safe_24h: int = 0
     guard_suspicious_24h: int = 0
     guard_block_24h: int = 0
-    recent_confirmations: list[dict] = field(default_factory=list)
+    recent_confirmations: list[dict[str, object]] = field(default_factory=list)
     rate_limited_1h: int = 0

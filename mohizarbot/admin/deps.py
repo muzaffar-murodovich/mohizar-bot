@@ -34,8 +34,8 @@ def set_session_cookie(response: object, user_id: int) -> None:
     value = f"{user_id}:{expiry}"
     signed = _sign(value)
     # httponly + samesite=strict
-    response.set_cookie = response.set_cookie
-    response.set_cookie(  # type: ignore[union-attr]
+    response.set_cookie = response.set_cookie  # type: ignore[attr-defined]
+    response.set_cookie(  # type: ignore[attr-defined]
         key="mohizar_session",
         value=signed,
         httponly=True,

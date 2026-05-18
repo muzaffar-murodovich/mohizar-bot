@@ -114,7 +114,7 @@ async def logout() -> RedirectResponse:
 async def dashboard(
     request: Request,
     mohizar_session: str = Cookie(default=""),
-) -> HTMLResponse:
+) -> Response:
     try:
         _require_admin(request, mohizar_session)
     except Exception:
@@ -138,7 +138,7 @@ async def chats_list(
     page: int = 1,
     search: str = "",
     mohizar_session: str = Cookie(default=""),
-) -> HTMLResponse:
+) -> Response:
     try:
         _require_admin(request, mohizar_session)
     except Exception:
@@ -164,7 +164,7 @@ async def chat_detail(
     request: Request,
     chat_id: int,
     mohizar_session: str = Cookie(default=""),
-) -> HTMLResponse:
+) -> Response:
     try:
         _require_admin(request, mohizar_session)
     except Exception:
@@ -213,13 +213,13 @@ async def audit_list(
     page: int = 1,
     chat_id: int = 0,
     mohizar_session: str = Cookie(default=""),
-) -> HTMLResponse:
+) -> Response:
     try:
         _require_admin(request, mohizar_session)
     except Exception:
         return RedirectResponse(url="/login", status_code=302)
 
-    rows: list = []
+    rows: list[object] = []
     return templates.TemplateResponse(
         request,
         "audit.html",
@@ -238,13 +238,13 @@ async def guard_list(
     verdict: str = "suspicious,block",
     page: int = 1,
     mohizar_session: str = Cookie(default=""),
-) -> HTMLResponse:
+) -> Response:
     try:
         _require_admin(request, mohizar_session)
     except Exception:
         return RedirectResponse(url="/login", status_code=302)
 
-    rows: list = []
+    rows: list[object] = []
     return templates.TemplateResponse(
         request,
         "guard.html",
