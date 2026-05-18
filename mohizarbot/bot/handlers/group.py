@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from aiogram.types import Message
 
     from mohizarbot.bot.api_wrapper import BotApiWrapper
+    from mohizarbot.config import Settings
     from mohizarbot.llm.router import Router
 
 logger = logging.getLogger(__name__)
@@ -21,11 +22,15 @@ async def handle_group_message(
     hmac_key: bytes,
     secrets: list[str],
     bot_username: str = "mohizarbot",
+    settings: Settings | None = None,
 ) -> None:
     """Handle a group message.
 
     Responds ONLY when the bot is @-mentioned, replied to, or addressed
     via /command@BotUsername. Other messages are silently logged for context.
+
+    Supports multimodal: voice/audio transcription, image understanding,
+    and document reading (Sprint 9).
     """
     from mohizarbot.bot.mention import is_bot_mentioned
 
@@ -33,6 +38,9 @@ async def handle_group_message(
         logger.debug("Group message not addressed to bot, skipping")
         return
 
+    from mohizarbot.bot.handlers.multimodal_helper import (
+        process_message_multimodal,
+    )
     from mohizarbot.llm.types import ChatMessage
     from mohizarbot.policy.engine import PolicyContext, PolicyEngine
     from mohizarbot.security.input_sanitizer import sanitize
@@ -42,10 +50,17 @@ async def handle_group_message(
         wrap_group_message,
     )
 
+    if settings is None:
+        from mohizarbot.config import Settings as _Settings
+
+        settings = _Settings()  # type: ignore[call-arg]
+
     user_text = message.text or ""
     chat_id = message.chat.id
     user_id = message.from_user.id if message.from_user else 0
-    username = message.from_user.username if message.from_user else ""
+    username = (
+        message.from_user.username if message.from_user and message.from_user.username else ""
+    )
 
     # Detect reply parent
     reply_to = getattr(message, "reply_to_message", None)
@@ -62,10 +77,17 @@ async def handle_group_message(
 
     # Admin check
     try:
-        member = await api._bot.get_chat_member(chat_id, user_id)  # type: ignore[union-attr]
+        member = await api._bot.get_chat_member(chat_id, user_id)
         is_admin = str(getattr(member, "status", "") in ("creator", "administrator")).lower()
     except Exception:
         is_admin = "false"
+
+    # 0. Process multimodal content
+    processed_text, capability_hints = await process_message_multimodal(message, api, settings)
+    has_multimodal = bool(capability_hints)
+
+    if has_multimodal:
+        user_text = processed_text
 
     # 1. Sanitize and wrap
     cleaned = sanitize(user_text)
@@ -101,15 +123,16 @@ async def handle_group_message(
             reply_to_user_id="",
             forwarded_from_id="",
             forwarded_from_chat_id="",
-            ts=getattr(reply_to, "date", "").isoformat() if getattr(reply_to, "date", None) else "",
+            ts=reply_to.date.isoformat() if getattr(reply_to, "date", None) else "",
             is_reply_target="true",
         )
         messages.append(ChatMessage(role="assistant", content=reply_wrapped))
 
     messages.append(ChatMessage(role="user", content=wrapped))
 
-    # 3. Route and call LLM
-    provider = router.select(messages)
+    # 3. Route and call LLM (with vision hints for images)
+    hints_arg = capability_hints if has_multimodal else None
+    provider = router.select(messages, capability_hints=hints_arg)
     try:
         response = await provider.chat(messages)
     except Exception as e:

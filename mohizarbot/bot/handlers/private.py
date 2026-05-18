@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from aiogram.types import Message
 
     from mohizarbot.bot.api_wrapper import BotApiWrapper
+    from mohizarbot.config import Settings
     from mohizarbot.llm.router import Router
 
 logger = logging.getLogger(__name__)
@@ -60,17 +61,37 @@ async def handle_private_message(
     router: Router,
     hmac_key: bytes,
     secrets: list[str],
+    settings: Settings | None = None,
 ) -> None:
-    """Full pipeline: sanitize → wrap → LLM → intents → policy → output → send."""
+    """Full pipeline: sanitize → wrap → LLM → intents → policy → output → send.
+
+    Supports multimodal: voice/audio transcription, image understanding,
+    and document reading (Sprint 9).
+    """
+    from mohizarbot.bot.handlers.multimodal_helper import (
+        process_message_multimodal,
+    )
     from mohizarbot.llm.types import ChatMessage, ToolSpec
     from mohizarbot.policy.engine import PolicyContext, PolicyEngine
     from mohizarbot.security.input_sanitizer import sanitize
     from mohizarbot.security.output_filter import filter_output
     from mohizarbot.security.untrusted import generate_session_token, wrap_untrusted
 
+    if settings is None:
+        from mohizarbot.config import Settings as _Settings
+
+        settings = _Settings()  # type: ignore[call-arg]
+
     user_text = message.text or ""
     chat_id = message.chat.id
     user_id = message.from_user.id if message.from_user else 0
+
+    # 0. Process multimodal content
+    processed_text, capability_hints = await process_message_multimodal(message, api, settings)
+    has_multimodal = bool(capability_hints)
+
+    if has_multimodal:
+        user_text = processed_text
 
     # 1. Sanitize and wrap
     cleaned = sanitize(user_text)
@@ -86,8 +107,9 @@ async def handle_private_message(
         ChatMessage(role="user", content=wrapped),
     ]
 
-    # 3. Route and call LLM
-    provider = router.select(messages)
+    # 3. Route and call LLM (with vision hints for images)
+    hints_arg = capability_hints if has_multimodal else None
+    provider = router.select(messages, capability_hints=hints_arg)
     tool_schema = _build_emit_intents_tool()
     fn_schema: dict[str, object] = tool_schema.get("function", {})  # type: ignore[assignment]
     raw_params = fn_schema.get("parameters", {})
@@ -108,7 +130,6 @@ async def handle_private_message(
     # 4. Parse intent batch from LLM response
     intent_batch = _parse_intents_from_response(response)
     if intent_batch is None:
-        # No tool calls — just text
         filtered = filter_output(response.content, secrets=secrets)
         await api.send_message(chat_id=chat_id, text=filtered.text)
         return
@@ -128,9 +149,8 @@ async def handle_private_message(
     # 6. Send results back
     for result in results:
         if result.status == "executed":
-            # Output filter on the text before sending
             if result.telegram_response:
-                continue  # Already sent by engine
+                continue
         elif result.status == "queued_for_confirmation":
             await api.send_message(
                 chat_id=chat_id,
