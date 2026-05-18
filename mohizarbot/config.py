@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     admin_port: int = 8001
     admin_user_ids: list[int] = []
+    whisper_api_key: str = ""
+    whisper_base_url: str = "https://api.openai.com/v1"
 
     @field_validator("admin_user_ids", mode="before")
     @classmethod
@@ -43,4 +45,5 @@ class Settings(BaseSettings):
             "database_url",
             "redis_url",
             "audit_hmac_key",
+            "whisper_api_key",
         }
