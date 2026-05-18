@@ -142,6 +142,31 @@ Group chat support with mention/reply detection and injection defense:
 - **Permissions**: non-admin moderation denied before guard model; admin still requires confirmation for high-risk
 - **Tests**: 7 new test files + 20 group-chat injection payloads; total **1057 tests** (> Sprint 7's 976)
 
+## Sprint 9 — what's included
+
+Multimodal input processing with document-embedded injection defense:
+
+- **Multimodal processors**: VoiceProcessor (Whisper), ImageProcessor (EXIF-stripped), DocumentProcessor (PDF/DOCX/TXT/CSV)
+- **Voice/audio transcription**: OpenAI Whisper API via httpx; supports OGA/Opus, MP3, M4A, WAV, WebM; 25MB cap
+- **Image understanding**: vision-capable LLM routing; EXIF metadata stripped for privacy; max 5 images, 10MB each
+- **Document reading**: pypdf for PDF (max 100 pages), python-docx for DOCX, chardet for charset detection; DOCX comments extracted; 50K char truncation
+- **MIME-based registry**: get_processor(mime_type) routes to correct processor; unknown types return None
+- **File-download risk levels**: files ≤5MB + ≤20K chars = LOW; larger files/text = MEDIUM (guard invoked)
+- **Document injection corpus**: 26 payloads (PDF metadata, white-text, hidden forms, DOCX comments, CSV formulas, ZIP bombs, polyglot files)
+- **Tests**: 5 new test files + 26 document injection payloads; total **1269 tests** (> Sprint 8's 1057)
+
+### Multimodal — supported formats and limits
+
+| Category | Formats | Processor | Max Size | Other Limits |
+|----------|---------|-----------|----------|--------------|
+| Voice/Audio | OGA, Opus, MP3, M4A, WAV, WebM | Whisper API | 25 MB | — |
+| Images | JPEG, PNG, WebP, GIF, BMP, TIFF | ImageProcessor | 10 MB | Max 5 per message; EXIF stripped |
+| Documents (PDF) | application/pdf | pypdf | 10 MB | Max 100 pages; 50K chars extracted |
+| Documents (DOCX) | .docx, .doc | python-docx | 10 MB | Comments extracted; 50K chars extracted |
+| Documents (Text) | TXT, CSV, HTML, etc. | chardet+UTF-8 | 10 MB | Non-UTF-8 detected via chardet; 50K chars extracted |
+
+All processor output is sanitized (input_sanitizer) and wrapped in untrusted tags (Layer 1) before LLM consumption. File downloads are never executed or used as subprocess paths.
+
 ## Quick start
 
 ```bash
