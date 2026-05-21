@@ -1,0 +1,6 @@
+   Building mohizarbot @ file:///Users/muzaffar/tech/mohizar-bot
+      Built mohizarbot @ file:///Users/muzaffar/tech/mohizar-bot
+Uninstalled 1 package in 0.41ms
+Installed 1 package in 0.97ms
+    mohizarbot.security.injection_detector.x_detect__mutmut_1: not checked
+Setup complete — 0 mutants killed, runner path issue documented

@@ -49,9 +49,20 @@ jobs:
       - run: uv sync --frozen
       - run: python scripts/redteam_ci.py
 
+  hardening:
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - run: python scripts/hardening_ci.py
+
   build:
     runs-on: ubuntu-latest
-    needs: [redteam]
+    needs: [redteam, hardening]
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t mohizarbot .
