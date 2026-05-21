@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     admin_user_ids: list[int] = []
     whisper_api_key: str = ""
     whisper_base_url: str = "https://api.openai.com/v1"
+    channel_ids: str = ""  # comma-separated
 
     @field_validator("admin_user_ids", mode="before")
     @classmethod
