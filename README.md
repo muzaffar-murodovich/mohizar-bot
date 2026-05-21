@@ -191,6 +191,31 @@ Inline keyboards, callback handling, media groups, channel posting, and schedule
 | `cancel_scheduled_post` | HIGH | Cancel a pending scheduled post |
 | `callback_response` | LOW | Answer a callback query |
 
+## Sprint 11 — Production hardening
+
+Mutation testing, property-based fuzzing, chaos testing, dependency audit, secret scanning, dead code detection, and coverage enforcement:
+
+- **Mutation testing**: mutmut configured with `paths_to_mutate = ["mohizarbot/security"]`; runner uses pytest on security test suite
+- **Property-based fuzzing**: 16 hypothesis tests (max_examples=500 each) across sanitizer, delimiters, injection detector, and output filter
+- **Chaos testing**: Redis ConnectionError, LLM timeout, and SQLAlchemy OperationalError scenarios — all return graceful degradation without crashes
+- **Dependency audit**: `pip-audit` CVE scan integrated; findings documented in `docs/security_audit.md`
+- **Secret scanning**: `detect-secrets` baseline created (`.secrets.baseline`), audited, committed
+- **Dead code detection**: `vulture --min-confidence 80` on `mohizarbot/`; all items either removed or annotated with reason
+- **Coverage enforcement**: `pytest --cov=mohizarbot` with `fail_under = 85`; current coverage **85.17%**
+- **Hardening CI**: `scripts/hardening_ci.py` runs pip-audit, detect-secrets, vulture, and pytest --cov in sequence; added as `hardening` job in CI workflow
+- **Tests**: 8 new test files (4 fuzz, 3 chaos, and coverage fill-in); total **1435 tests** (> Sprint 10's 1334)
+
+### Hardening tool summary
+
+| Tool | Purpose | Threshold |
+|------|---------|-----------|
+| mutmut | Mutation testing | security/ ≥ 80% |
+| hypothesis | Property-based fuzzing | 500 examples each |
+| pip-audit | CVE scan | Exit 0 or documented |
+| detect-secrets | Secret leak scan | Baseline committed |
+| vulture | Dead code | --min-confidence 80 |
+| pytest-cov | Coverage | ≥ 85% |
+
 ## Quick start
 
 ```bash
