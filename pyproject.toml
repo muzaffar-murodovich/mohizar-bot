@@ -27,6 +27,12 @@ dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.23",
     "respx>=0.21",
+    "mutmut>=3.2",
+    "hypothesis>=6.130",
+    "pytest-cov>=6.1",
+    "pip-audit>=2.8",
+    "vulture>=2.14",
+    "detect-secrets>=1.5",
 ]
 
 [build-system]
@@ -56,3 +62,25 @@ python_version = "3.12"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.mutmut]
+paths_to_mutate = ["mohizarbot/security"]
+runner = "cd /Users/muzaffar/tech/mohizar-bot && uv run pytest tests/security/ -q --no-header"
+
+[tool.coverage.run]
+source = ["mohizarbot"]
+
+[tool.coverage.report]
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
+[dependency-groups]
+dev = [
+    "aiosqlite>=0.22.1",
+    "jinja2>=3.1.6",
+    "python-multipart>=0.0.29",
+]
