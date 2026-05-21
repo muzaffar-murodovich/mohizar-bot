@@ -35,6 +35,16 @@ RISK_LEVELS: dict[str, str] = {
     "pin_chat_message": "high",
     "unpin_chat_message": "high",
     "delete_forum_topic": "high",
+    # Sprint 10 — inline keyboards & media groups (low)
+    "send_message_with_keyboard": "low",
+    "send_media_group": "low",
+    # Sprint 10 — channel posts (high, always)
+    "post_to_channel": "high",
+    "edit_channel_post": "high",
+    "cancel_scheduled_post": "high",
+    # Sprint 10 — callback response (low, idempotent)
+    "callback_response": "low",
+    "edit_reply_markup": "medium",
 }
 
 HIGH_RISK_ALWAYS_CONFIRM = {k for k, v in RISK_LEVELS.items() if v == "high"}

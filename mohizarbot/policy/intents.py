@@ -234,6 +234,64 @@ class WebSearchIntent(BaseIntent):
     max_results: int = 5
 
 
+# ── Sprint 10 inline keyboards ──
+class SendMessageWithKeyboardIntent(BaseIntent):
+    type: Literal["send_message_with_keyboard"] = "send_message_with_keyboard"
+    chat_id: int
+    text: str
+    buttons: list[list[dict[str, object]]]  # serialized InlineButton rows
+
+
+class EditReplyMarkupIntent(BaseIntent):
+    type: Literal["edit_reply_markup"] = "edit_reply_markup"
+    chat_id: int
+    message_id: int
+    buttons: list[list[dict[str, object]]]
+
+
+# ── Sprint 10 media groups ──
+class MediaItem(BaseModel):
+    type: str  # photo, video, audio, document
+    file_id_or_url: str
+    caption: str | None = None
+
+
+class SendMediaGroupIntent(BaseIntent):
+    type: Literal["send_media_group"] = "send_media_group"
+    chat_id: int
+    media: list[MediaItem]
+
+
+# ── Sprint 10 channel & scheduling ──
+class PostToChannelIntent(BaseIntent):
+    type: Literal["post_to_channel"] = "post_to_channel"
+    channel_id: int
+    text: str
+    buttons: list[list[dict[str, object]]] | None = None
+    schedule_ts: int | None = None  # Unix timestamp, None = post immediately
+
+
+class EditChannelPostIntent(BaseIntent):
+    type: Literal["edit_channel_post"] = "edit_channel_post"
+    channel_id: int
+    message_id: int
+    text: str
+    buttons: list[list[dict[str, object]]] | None = None
+
+
+class CancelScheduledPostIntent(BaseIntent):
+    type: Literal["cancel_scheduled_post"] = "cancel_scheduled_post"
+    job_id: str
+
+
+# ── Sprint 10 callback response ──
+class CallbackResponseIntent(BaseIntent):
+    type: Literal["callback_response"] = "callback_response"
+    callback_query_id: str
+    text: str | None = None
+    show_alert: bool = False
+
+
 # Discriminated union
 Intent = Annotated[
     SendMessageIntent
@@ -266,7 +324,14 @@ Intent = Annotated[
     | MemorySaveIntent
     | MemoryDeleteIntent
     | WebFetchIntent
-    | WebSearchIntent,
+    | WebSearchIntent
+    | SendMessageWithKeyboardIntent
+    | EditReplyMarkupIntent
+    | SendMediaGroupIntent
+    | PostToChannelIntent
+    | EditChannelPostIntent
+    | CancelScheduledPostIntent
+    | CallbackResponseIntent,
     Field(discriminator="type"),
 ]
 
