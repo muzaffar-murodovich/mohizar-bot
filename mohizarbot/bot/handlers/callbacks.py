@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
 from typing import TYPE_CHECKING
 
@@ -17,17 +18,35 @@ async def handle_callback(
     api: BotApiWrapper,
     hmac_key: bytes,
 ) -> None:
-    """Handle confirmation button presses via callback_data parsing.
+    """Handle all callback queries: confirmations and arbitrary signed callbacks.
 
-    Format: confirm:{token}:{decision} where decision is approve/deny.
+    Two flows:
+    1. ``confirm:<token>:<decision>`` — Sprint 4 confirmation flow.
+    2. ``<hmac_sig>:<json_payload>`` — Sprint 10 arbitrary signed callbacks.
+       Payload is JSON with at minimum a ``"type"`` field.
+
+    Unsigned or tampered callbacks are silently dropped and logged to audit.
     """
+    data = callback.data or ""
+
+    # Flow 1: confirmation tokens
+    if data.startswith("confirm:"):
+        await _handle_confirmation(callback, api, hmac_key, data)
+        return
+
+    # Flow 2: arbitrary signed callbacks
+    await _handle_signed_callback(callback, api, hmac_key, data)
+
+
+async def _handle_confirmation(
+    callback: CallbackQuery,
+    api: BotApiWrapper,
+    hmac_key: bytes,
+    data: str,
+) -> None:
+    """Handle Sprint 4 confirmation flow."""
     from mohizarbot.policy.confirmations import resolve_confirmation
     from mohizarbot.policy.engine import PolicyContext, PolicyEngine
-
-    data = callback.data or ""
-    if not data.startswith("confirm:"):
-        await callback.answer("Unknown callback")
-        return
 
     parts = data.split(":", 2)
     if len(parts) != 3:
@@ -48,7 +67,6 @@ async def handle_callback(
             await callback.answer("Invalid or expired confirmation token")
         return
 
-    # Execute the confirmed intent
     engine = PolicyEngine()
     intent_type = str(result.get("type", ""))
 
@@ -77,3 +95,59 @@ async def handle_callback(
             await callback.answer(f"Failed: {actions[0].reason if actions else 'unknown'}")
     else:
         await callback.answer("Confirmation resolved but action not supported yet")
+
+
+async def _handle_signed_callback(
+    callback: CallbackQuery,
+    api: BotApiWrapper,
+    hmac_key: bytes,
+    data: str,
+) -> None:
+    """Handle Sprint 10 arbitrary signed callback_data.
+
+    Verifies the HMAC signature. If valid, parses the JSON payload and acts.
+    If invalid, silently drops and writes an audit log entry.
+    """
+    from mohizarbot.audit.log import create_entry, genesis_hmac
+    from mohizarbot.bot.keyboard import verify_callback
+
+    payload = verify_callback(data, hmac_key)
+    if payload is None:
+        # Unsigned/tampered — silently drop + audit
+        chat_id = callback.message.chat.id if callback.message else 0
+        user_id = callback.from_user.id
+        try:
+            create_entry(
+                hmac_key,
+                previous_hmac=genesis_hmac(),
+                chat_id=chat_id,
+                user_id=user_id,
+                intent_json=json.dumps({"event": "unsigned_callback_dropped", "data": data[:200]}),
+                decision="dropped",
+                reasoning_summary="Unsigned or tampered callback_data received",
+            )
+        except Exception:
+            logger.warning("Failed to write audit entry for dropped callback")
+        return
+
+    # Try to parse as JSON
+    try:
+        payload_obj: dict[str, object] = json.loads(payload)
+    except json.JSONDecodeError:
+        logger.warning("Callback payload is not valid JSON, dropping")
+        return
+
+    action = str(payload_obj.get("action", ""))
+    user_id = callback.from_user.id
+
+    if action == "answer":
+        # Generic answer to callback query
+        text = str(payload_obj.get("text", ""))
+        show_alert = bool(payload_obj.get("show_alert", False))
+        await callback.answer(text=text or None, show_alert=show_alert)
+    elif action == "dismiss":
+        await callback.answer()
+    else:
+        # Unknown action — answer generically
+        logger.info("Unknown callback action: %s", action)
+        await callback.answer(text="Action received")
