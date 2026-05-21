@@ -167,6 +167,30 @@ Multimodal input processing with document-embedded injection defense:
 
 All processor output is sanitized (input_sanitizer) and wrapped in untrusted tags (Layer 1) before LLM consumption. File downloads are never executed or used as subprocess paths.
 
+## Sprint 10 — Rich messaging
+
+Inline keyboards, callback handling, media groups, channel posting, and scheduled posts:
+
+- **Inline keyboards**: `build_inline_keyboard()` builder with `InlineButton(text, callback_data, url)`; all `callback_data` HMAC-signed (SHA256); unsigned callbacks silently dropped + audit log entry
+- **Callback handling**: Extended `handle_callback()` supports both Sprint 4 confirmation tokens (`confirm:`) and Sprint 10 arbitrary signed callbacks (`<sig>:<json_payload>`); `CallbackResponseIntent` for `answer_callback_query`
+- **Media groups**: `SendMediaGroupIntent` with up to 10 `MediaItem`s; 11th rejected by policy; caption on first item only; sends via `sendMediaGroup`
+- **Channel posting**: `ChannelManager.post_to_channel()` and `edit_channel_post()` with admin precheck (`getChatMember`); `CHANNEL_IDS` in Settings (comma-separated, optional); `PostToChannelIntent` and `EditChannelPostIntent`
+- **Scheduled posts**: Redis-backed scheduler (`schedule:` key prefix); `run_scheduler()` checks every 60s for due jobs; `PostToChannelIntent` with `schedule_ts` creates job; `CancelScheduledPostIntent` removes job
+- **Risk levels**: `post_to_channel`, `edit_channel_post`, `cancel_scheduled_post` → HIGH (always confirm); `send_message_with_keyboard`, `send_media_group` → LOW; `edit_reply_markup` → MEDIUM; `callback_response` → LOW
+- **Tests**: 7 new test files; total **1334 tests** (> Sprint 9's 1269)
+
+### Rich messaging — intent reference
+
+| Intent | Risk | Description |
+|--------|------|-------------|
+| `send_message_with_keyboard` | LOW | Send message with inline keyboard |
+| `edit_reply_markup` | MEDIUM | Edit message's inline keyboard only |
+| `send_media_group` | LOW | Send up to 10 media items as album |
+| `post_to_channel` | HIGH | Post to a channel (optionally scheduled) |
+| `edit_channel_post` | HIGH | Edit an existing channel post |
+| `cancel_scheduled_post` | HIGH | Cancel a pending scheduled post |
+| `callback_response` | LOW | Answer a callback query |
+
 ## Quick start
 
 ```bash
