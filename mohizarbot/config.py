@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     @field_validator("admin_user_ids", mode="before")
     @classmethod
     def parse_admin_ids(cls, v: object) -> list[int]:
+        _ = cls  # noqa: ARG001 — classmethod cls parameter
         if v is None:
             return []
         if isinstance(v, list):

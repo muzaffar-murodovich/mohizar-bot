@@ -25,6 +25,7 @@ _traces: list[list[Span]] = []
 
 def start_trace(trace_id: str) -> list[Span]:
     """Start a new trace with the given ID."""
+    _ = trace_id  # noqa: ARG001 — wired when OTEL integrated
     spans: list[Span] = []
     _traces.append(spans)
     return spans

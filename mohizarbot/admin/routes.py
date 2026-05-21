@@ -192,7 +192,6 @@ async def chat_save(
     chat_id: int,
     provider: str = Form(default="anthropic"),
     model: str = Form(default="claude-sonnet-4-6"),
-    auto_approve: str = Form(default="off"),
     csrf_token: str = Form(default=""),
     mohizar_session: str = Cookie(default=""),
 ) -> RedirectResponse:

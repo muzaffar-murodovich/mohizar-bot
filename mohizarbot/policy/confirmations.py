@@ -49,6 +49,7 @@ def resolve_confirmation(
 
     Returns the intent dict if approved and valid, None if denied/invalid.
     """
+    _ = resolving_user_id  # noqa: ARG001 — will be used for resolver identity verification
     if token not in _tokens:
         return None
 

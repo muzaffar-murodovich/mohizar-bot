@@ -99,5 +99,6 @@ class WebSearchTool(Tool):
 
     @staticmethod
     async def execute(query: str, max_results: int = 5) -> str:
+        _ = max_results  # noqa: ARG001 — wired in Sprint 6+
         # Placeholder — real provider wired in Sprint 6
         return f"[WebSearch placeholder results for: {query}]"
